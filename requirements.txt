@@ -1,0 +1,12 @@
+torch
+numpy
+accelerate
+bitsandbytes
+einops
+transformers
+tiktoken
+blobfile
+protobuf
+sentencepiece
+pandas
+matplotlib
