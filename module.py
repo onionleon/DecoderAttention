@@ -35,6 +35,7 @@ class Model:
 
         input_dict = {}
         inputs = self.tokenizer(prompt, return_tensors="pt")
+        input_tokens = inputs
         
         for k, v in inputs.items():
             input_dict[k] = v.to(self.model.device)
@@ -66,7 +67,20 @@ class Model:
             "fwd_out": fwd_out,
             "text_outputs": text_outputs,
             "prompt_attn": prompt_attentions,
-            "gen_attn": gen_attentions
+            "gen_attn": gen_attentions,
+            "gen_tokens": gen.sequences[0],
+            "input_tokens": input_tokens
+        }
+        
+    def get_model_output(self, results: dict):
+        input_len = len(results["inputs"]["input_ids"].tolist())
+        
+        generated_tokens = results["gen_tokens"].tolist()[input_len]
+        generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
+        
+        return {
+            "generated_tokens": generated_tokens,
+            "generated_text": generated_text
         }
 
     
