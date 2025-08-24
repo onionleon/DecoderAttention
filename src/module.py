@@ -73,15 +73,26 @@ class Model:
         }
         
     def get_model_output(self, results: dict):
-        input_len = len(results["inputs"]["input_ids"].tolist())
-        
-        generated_tokens = results["gen_tokens"].tolist()[input_len]
-        generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
-        
+        input_ids = results["inputs"]["input_ids"]
+        if "attention_mask" in results["inputs"]:
+            input_len = int(results["inputs"]["attention_mask"][0].sum().item())
+        else:
+            input_len = int(input_ids.shape[1])
+
+        seq = results.get("gen_sequences", results.get("gen_tokens"))
+        if hasattr(seq, "dim") and seq.dim() == 2:
+            seq = seq[0]
+        if hasattr(seq, "tolist"):
+            seq = seq.tolist()
+
+        new_ids = seq[input_len:]
+        new_text = self.tokenizer.decode(new_ids, skip_special_tokens=True)
+
         return {
-            "generated_tokens": generated_tokens,
-            "generated_text": generated_text
+            "generated_tokens": new_ids,
+            "generated_text": new_text
         }
+
 
     
     def prompt_attention(self, results: dict, layer: int, head: int, top_n: int):
