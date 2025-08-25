@@ -273,10 +273,10 @@ class Model:
                         pairs.append((w, q_tok, k_tok))
                 pairs.sort(key=lambda x: x[0], reverse=True)
                 
-                for w, q_tok, k_tok in pairs[:40]:
+                for w, q_tok, k_tok in pairs:
                     curr_rows.append((gen_step, w, q_tok, k_tok))
                     
             curr_df = pd.DataFrame(curr_rows, columns=["gen_step", "attention", "query_token", "key_token"])
             pd_results.append(curr_df)
         
-        return pd_results
+        return pd_results, len(pairs)

@@ -1,7 +1,8 @@
 import pandas as pd
 import json, gzip
 from pathlib import Path
-from typing import Dict, List, Any, Iterable, Optional, Callable
+from typing import Dict, List, Any
+import matplotlib.pyplot as plt
 
 def get_key_word_attentions(key_words: list[str], results: list[pd.DataFrame]):
     attention_results = {}
@@ -17,7 +18,7 @@ def get_key_word_attentions(key_words: list[str], results: list[pd.DataFrame]):
                 total_token_attention += token_rows["attention"].mean()
                 head_appearances += 1
         
-        avg_token_attention = total_token_attention / max(1, head_appearances)
+        avg_token_attention = total_token_attention / len(results) # max(1, head_appearances)
         
         attention_results[token] = {
             "avg_attention": avg_token_attention,
@@ -46,4 +47,37 @@ def load_prompts_jsonl(path: str | Path) -> List[Dict[str, Any]]:
             })
     return records
 
+def transform_results(prompts: List[dict], attn_results: List[dict]):
+    if len(prompts) != len(attn_results):
+        raise ValueError("The two lists have to be equal length")
+    
+    results = {
+        "Goblin": {
+            "attention": [],
+            "context_len": []
+        },
+        "Master": {
+            "attention": [],
+            "context_len": []
+        }
+    }
+    
+    for i in range(len(prompts)):
+        results["Goblin"]["context_len"].append(prompts[i]["prompt_len"])
+        results["Goblin"]["attention"].append(float(attn_results[i]["▁goblin"]["avg_attention"]))
+        
+        results["Master"]["context_len"].append(prompts[i]["prompt_len"])
+        results["Master"]["attention"].append(float(attn_results[i]["▁goblin"]["avg_attention"]))
+    
+    return results
+    
+def plot_results(results: dict):
+    for token, vals in results.items():
+        plt.figure()
+        plt.plot(vals["context_len"], vals["attention"], marker="o")
+        plt.xlabel("Context length (characters)")
+        plt.ylabel("Average attention")
+        plt.title(f"{token}: attention vs. context length")
+        plt.show()
+        
     
